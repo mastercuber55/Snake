@@ -1,14 +1,21 @@
 import pygame
 from pygame.locals import *
 
-from Rectangle import Rectangle
+from Rectangle import Rectangle, rectangles_collide
 from Snake import Snake
+from config import window_size_x, window_size_y
+
+def draw_grid(display_surf):
+    for x in range(0, window_size_x, 32):
+        pygame.draw.line(display_surf, (64, 64, 64), (x, 0), (x, window_size_y))
+    for y in range(0, window_size_y, 32):
+        pygame.draw.line(display_surf, (64, 64, 64), (0, y), (window_size_x, y))
 
 class Game:
     def __init__(self):
         pygame.init()
         self.running = True
-        self.display_surf = pygame.display.set_mode((640, 480))
+        self.display_surf = pygame.display.set_mode((window_size_x, window_size_y))
         self.fps = pygame.time.Clock()
         self.frame = 0
 
@@ -17,9 +24,9 @@ class Game:
         
         for i in range(3):
             self.foods.append(Rectangle(clr=(255, 0, 0)))
-
         pygame.display.set_caption("Snake")
 
+    
     def run(self):
         while self.running:
             for event in pygame.event.get():
@@ -61,8 +68,15 @@ class Game:
         if moved:
             self.snake.handle_head()  
 
+        for food in self.foods:
+            if rectangles_collide(food, self.snake.head):
+                self.snake.grow()
+                self.foods.remove(food)
+
     def on_draw(self):
         self.display_surf.fill((0, 0, 0))  # Clear the screen with black color
+        draw_grid(self.display_surf)
+
         self.snake.draw(self.display_surf)
         
         for food in self.foods:
